@@ -11,7 +11,8 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="/">MedAI Diagnostics</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -19,21 +20,21 @@
                 @if (user != null)
                 {
                     <li class="nav-item">
-                        <a class="nav-link" href="/settings">
-                            <span class="navbar-text me-3">Welcome, @user.Name (@user.Type)</span>
+                        <a class="nav-link" href="/settings" style="color: white;">
+                            Welcome, @user.Name (@user.Type)
                         </a>
                     </li>
                     <li class="nav-item">
-                        <button class="btn btn-link nav-link" @onclick="Logout">Logout</button>
+                        <button class="btn btn-link nav-link" @onclick="Logout" style="color: white;">Logout</button>
                     </li>
                 }
                 else
                 {
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">Login</a>
+                        <a class="nav-link" href="/login" style="color: white;">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/signup">Sign Up</a>
+                        <a class="nav-link" href="/signup" style="color: white;">Sign Up</a>
                     </li>
                 }
             </ul>
@@ -44,20 +45,24 @@
 @code {
     private User? user;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try
+        if (firstRender)
         {
-            var result = await ProtectedLocalStorage.GetAsync<User>("user");
-            if (result.Success)
+            try
             {
-                user = result.Value;
-                UserService.CurrentUser = user;
+                var result = await ProtectedLocalStorage.GetAsync<User>("user");
+                if (result.Success)
+                {
+                    user = result.Value;
+                    UserService.CurrentUser = user;
+                    StateHasChanged();
+                }
             }
-        }
-        catch (CryptographicException)
-        {
-            // This can happen during prerendering, just ignore it.
+            catch (CryptographicException)
+            {
+                // This can happen during prerendering, just ignore it.
+            }
         }
     }
 
