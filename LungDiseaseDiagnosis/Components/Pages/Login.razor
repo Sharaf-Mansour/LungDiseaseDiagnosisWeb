@@ -73,7 +73,7 @@
         {
             UserService.CurrentUser = user;
             await ProtectedLocalStorage.SetAsync("user", user);
-            NavigationManager.NavigateTo("/", forceLoad: true);
+            NavigationManager.NavigateTo("/", forceLoad: false);
         }
         else
         {
