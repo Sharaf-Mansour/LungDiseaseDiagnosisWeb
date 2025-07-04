@@ -1,0 +1,81 @@
+@page "/settings"
+@using LungDiseaseDiagnosis.Models
+@using LungDiseaseDiagnosis.Brokers.Storages
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using LungDiseaseDiagnosis.Services
+
+@inject IStorageBroker StorageBroker
+@inject ProtectedLocalStorage ProtectedLocalStorage
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card-premium p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-gear text-primary fs-1 mb-3"></i>
+                    <h2 class="fw-bold">Settings</h2>
+                    <p class="text-muted">Update your account information</p>
+                </div>
+
+                @if (_user != null)
+                {
+                    <EditForm Model="@_user" OnValidSubmit="HandleUpdate">
+                        <DataAnnotationsValidator />
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-medium">
+                                <i class="bi bi-person"></i> Full Name
+                            </label>
+                            <InputText @bind-Value="_user.Name" class="form-control" id="name" />
+                            <ValidationMessage For="@(() => _user.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-medium">
+                                <i class="bi bi-lock"></i> New Password
+                            </label>
+                            <InputText @bind-Value="_user.Password" type="password" class="form-control" id="password" />
+                            <ValidationMessage For="@(() => _user.Password)" />
+                        </div>
+
+                        <button type="submit" class="btn btn-medical w-100 mb-3">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </EditForm>
+                }
+                else
+                {
+                    <p>Loading user data...</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private User? _user;
+
+    protected override void OnInitialized()
+    {
+        StateContainer.OnChange += StateHasChanged;
+        _user = UserService.CurrentUser;
+
+        if (_user == null)
+        {
+            NavigationManager.NavigateTo("/login");
+        }
+    }
+
+    private async Task HandleUpdate()
+    {
+        if (_user != null)
+        {
+            await StorageBroker.UpdateUserAsync(_user);
+            await ProtectedLocalStorage.SetAsync("user", _user);
+            NavigationManager.NavigateTo("/", forceLoad: true);
+
+        }
+    }
+}

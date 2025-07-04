@@ -1,0 +1,84 @@
+﻿@page "/signup"
+@using LungDiseaseDiagnosis.Models
+@using LungDiseaseDiagnosis.Brokers.Storages
+
+@inject NavigationManager NavigationManager
+@inject IStorageBroker StorageBroker
+
+@code {
+    private User _model = new();
+    protected override void OnInitialized() => StateContainer.OnChange += StateHasChanged;
+
+    private async Task HandleRegistration()
+    {
+        await StorageBroker.InsertUserAsync(_model);
+        NavigationManager.NavigateTo("/login");
+    }
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card-premium p-5">
+                <div class="text-center mb-4">
+                    <i class="bi bi-person-plus text-primary fs-1 mb-3"></i>
+                    <h2 class="fw-bold">Medical Professional Registration</h2>
+                    <p class="text-muted">Join the MedAI diagnostic platform</p>
+                </div>
+
+                <EditForm Model="@_model" OnValidSubmit="HandleRegistration">
+                    <DataAnnotationsValidator />
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-medium">
+                            <i class="bi bi-person"></i> Full Name
+                        </label>
+                        <InputText @bind-Value="_model.Name" class="form-control" id="name" />
+                        <ValidationMessage For="@(() => _model.Name)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-medium">
+                            <i class="bi bi-envelope"></i> Email Address
+                        </label>
+                        <InputText @bind-Value="_model.Username" type="email" class="form-control" id="email" />
+                        <ValidationMessage For="@(() => _model.Username)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="role" class="form-label fw-medium">
+                            <i class="bi bi-briefcase"></i> Medical Role
+                        </label>
+                        <InputSelect @bind-Value="_model.Type" class="form-control" id="role">
+                            <option value="">Select your role</option>
+                            @foreach (var type in Enum.GetValues(typeof(MedType)))
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => _model.Type)" />
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-medium">
+                            <i class="bi bi-lock"></i> Password
+                        </label>
+                        <InputText @bind-Value="_model.Password" type="password" class="form-control" id="password" />
+                        <ValidationMessage For="@(() => _model.Password)" />
+                    </div>
+
+                    <button type="submit" class="btn btn-medical w-100 mb-3">
+                        <i class="bi bi-person-plus"></i> Create Medical Account
+                    </button>
+                </EditForm>
+
+                <div class="text-center">
+                    <p class="text-muted">Already have an account?
+                        <a href="/login" class="text-decoration-none fw-medium" style="color: #4facfe;">
+                            Sign in here
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,186 @@
+@page "/predict"
+@using Microsoft.AspNetCore.Components.Forms
+@using System.IO
+@inject Microsoft.JSInterop.IJSRuntime JSRuntime
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold text-white mb-3">
+                    <i class="bi bi-cpu"></i> Medical Image Analysis
+                </h1>
+                <p class="lead text-white opacity-75">
+                    Upload chest X-ray or medical images for AI-powered diagnostic analysis
+                </p>
+            </div>
+
+            <div class="card-premium p-5">
+                <EditForm Model="@_model" OnValidSubmit="AnalyzeImage">
+                    <div class="mb-4">
+                        <label for="image" class="form-label fw-medium">
+                            <i class="bi bi-cloud-upload"></i> Upload Medical Image
+                        </label>
+                        <InputFile OnChange="OnInputFileChange" class="form-control" id="image" accept="image/*" />
+                        <div class="form-text">
+                            <i class="bi bi-info-circle"></i>
+                            Supported: PNG, JPG, JPEG, GIF, BMP, TIFF (Max 16MB) |
+                            Recommended: Chest X-rays, CT scans, or respiratory imaging
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-medical btn-lg" disabled="@(_isAnalyzing)">
+                            @if (_isAnalyzing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                <span>Analyzing...</span>
+                            }
+                            else
+                            {
+                                <span><i class="bi bi-cpu"></i> Analyze Medical Image</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+
+                @if (_analysisResult != null)
+                {
+                    <div class="mt-5">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h3 class="fw-bold mb-3">
+                                        <i class="bi bi-clipboard-pulse"></i> Diagnostic Result
+                                    </h3>
+                                    <div class="diagnosis-card @(_analysisResult.Diagnosis == "Normal" ? "diagnosis-normal" : "diagnosis-abnormal")">
+                                        @switch (_analysisResult.Diagnosis)
+                                        {
+                                            case "Normal":
+                                                <i class="bi bi-check-circle-fill fs-1 mb-3 d-block"></i>
+                                                break;
+                                            case "Bacterial Pneumonia":
+                                                <i class="bi bi-lungs fs-1 mb-3 d-block"></i>
+                                                break;
+                                            case "Corona Virus Disease":
+                                                <i class="bi bi-virus fs-1 mb-3 d-block"></i>
+                                                break;
+                                            case "Tuberculosis":
+                                                <i class="bi bi-exclamation-triangle fs-1 mb-3 d-block"></i>
+                                                break;
+                                            case "Viral Pneumonia":
+                                                <i class="bi bi-virus2 fs-1 mb-3 d-block"></i>
+                                                break;
+                                            default:
+                                                <i class="bi bi-question-circle fs-1 mb-3 d-block"></i>
+                                                break;
+                                        }
+                                        <h2 class="fw-bold mb-2">@_analysisResult.Diagnosis</h2>
+                                        @if (_analysisResult.Confidence.HasValue)
+                                        {
+                                            <p class="mb-0">Confidence: @_analysisResult.Confidence.Value.ToString("F1")%</p>
+                                        }
+                                    </div>
+
+                                    @if (_analysisResult.Diagnosis != "Normal")
+                                    {
+                                        <div class="alert alert-warning mt-3">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Medical Disclaimer:</strong> This AI analysis is for assistance only.
+                                            Please consult with a qualified healthcare professional for proper diagnosis and treatment.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h4 class="fw-medium mb-3">
+                                        <i class="bi bi-image"></i> Analyzed Image
+                                    </h4>
+                                    <img src="@_uploadedImageUrl"
+                                         class="img-fluid rounded-3 shadow"
+                                         style="max-height: 400px; object-fit: contain; border: 3px solid #4facfe;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-outline-medical me-3" @onclick="AnalyzeAnotherImage">
+                                <i class="bi bi-arrow-clockwise"></i> Analyze Another Image
+                            </button>
+                            <button class="btn btn-outline-secondary" @onclick="PrintReport">
+                                <i class="bi bi-printer"></i> Print Report
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private MedicalImageAnalysisModel _model = new();
+    private AnalysisResult? _analysisResult;
+    private bool _isAnalyzing;
+    private string? _uploadedImageUrl;
+    protected override void OnInitialized() => StateContainer.OnChange += StateHasChanged;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        _model.ImageFile = e.File;
+        if (_model.ImageFile != null)
+        {
+            var buffer = new byte[_model.ImageFile.Size];
+            await _model.ImageFile.OpenReadStream().ReadAsync(buffer);
+            var imageDataUrl = $"data:{_model.ImageFile.ContentType};base64,{Convert.ToBase64String(buffer)}";
+            _uploadedImageUrl = imageDataUrl;
+        }
+    }
+
+    private async Task AnalyzeImage()
+    {
+        if (_model.ImageFile == null) return;
+
+        _isAnalyzing = true;
+        // Simulate analysis delay
+        await Task.Delay(2000);
+
+        // Simulate a result
+        var diagnoses = new[] { "Normal", "Bacterial Pneumonia", "Viral Pneumonia", "Tuberculosis", "Corona Virus Disease" };
+        var random = new Random();
+        var diagnosis = diagnoses[random.Next(diagnoses.Length)];
+        var confidence = (float)(random.NextDouble() * (100 - 70) + 70);
+
+        _analysisResult = new AnalysisResult
+        {
+            Diagnosis = diagnosis,
+            Confidence = confidence
+        };
+
+        _isAnalyzing = false;
+    }
+
+    private void AnalyzeAnotherImage()
+    {
+        _model = new();
+        _analysisResult = null;
+        _uploadedImageUrl = null;
+    }
+
+    private async Task PrintReport()
+    {
+        await JSRuntime.InvokeVoidAsync("window.print");
+    }
+
+    public class MedicalImageAnalysisModel
+    {
+        public IBrowserFile? ImageFile { get; set; }
+    }
+
+    public class AnalysisResult
+    {
+        public string? Diagnosis { get; set; }
+        public float? Confidence { get; set; }
+    }
+}

@@ -9,7 +9,15 @@
   <ItemGroup>
     <PackageReference Include="Arora.Blazor.StateContainer" Version="1.0.2" />
     <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="EFxceptions" Version="1.0.3" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="LD.db">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

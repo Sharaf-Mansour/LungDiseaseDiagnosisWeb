@@ -1,10 +1,19 @@
-using LungDiseaseDiagnosis.Components;
+global using LungDiseaseDiagnosis.Components;
+global using Dapper;
+global using LungDiseaseDiagnosis.Models;
+global using LungDiseaseDiagnosis.Brokers.Storages;
+global using Arora.Blazor.StateContainer;
+global using LungDiseaseDiagnosis.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddTransient<IStorageBroker, StorageBroker>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddStateContainer();
 
 var app = builder.Build();
 
